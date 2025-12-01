@@ -1,0 +1,40 @@
+# Training Hyperparameters
+hyperparameters:
+  learning_rate: 1.0e-4
+  batch_size: 8
+  num_epochs: 30
+  image_height: 640
+  image_width: 640
+  num_workers: 0 
+  device: "auto" # "auto", "cuda", "mps", "cpu"
+
+# Early Stopping & Scheduler Settings
+training_control:
+  early_stopping_patience: 10  
+  scheduler_patience: 4        
+  scheduler_factor: 0.5        
+  min_lr: 1.0e-6
+
+# Model Settings
+model:
+  encoder_name: "resnet34"
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 2 
+
+# Paths
+paths:
+  base_dir: "dataset"
+  train_images: "train_images"
+  train_edge_masks: "train_edge_masks"
+  train_roof_masks: "train_roof_masks"
+  
+  valid_images: "valid_images"
+  valid_edge_masks: "valid_edge_masks"
+  valid_roof_masks: "valid_roof_masks"
+
+  test_images: "test_images"
+  test_edge_masks: "test_edge_masks"
+  test_roof_masks: "test_roof_masks"
+
+  checkpoint_save_path: "roof_estimator/roof_edge_detection_model.pth"

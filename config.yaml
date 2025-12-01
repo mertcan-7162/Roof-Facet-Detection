@@ -1,0 +1,36 @@
+# Training Hyperparameters
+
+device: "auto" # "auto", "cuda", "mps", "cpu"
+image_size: 640
+# Model Settings
+model1:
+  encoder: "resnet34"
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 2 
+  path: "roof_estimator/roof_edge_detection_model.pth"
+
+# Model Settings
+model2:
+  encoder: "resnet34"
+  encoder_weights: "imagenet"
+  in_channels: 1
+  classes: 1 
+  path: "polygon_estimator/shape_refinment_model.pth"
+
+# Paths
+paths:
+  base_dir: "dataset"
+  output_dir: "."
+  train_images: "train_images"
+  train_edge_masks: "train_edge_masks"
+  train_roof_masks: "train_roof_masks"
+  
+  valid_images: "valid_images"
+  valid_edge_masks: "valid_edge_masks"
+  valid_roof_masks: "valid_roof_masks"
+
+  test_images: "test_images"
+  test_edge_masks: "test_edge_masks"
+  test_roof_masks: "test_roof_masks"
+

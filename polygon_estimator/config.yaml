@@ -1,0 +1,41 @@
+# Hyperparameters
+hyperparameters:
+  learning_rate: 1.0e-4
+  batch_size: 8
+  num_epochs: 1
+  image_height: 640
+  image_width: 640
+  num_workers: 0
+  device: "auto" # "cuda", "mps", "cpu"
+
+# Training Control
+control:
+  early_stopping_patience: 10
+  scheduler_patience: 3
+  scheduler_factor: 0.5
+  min_lr: 1.0e-7
+
+# Model Settings
+model:
+  encoder_name: "resnet34"
+  encoder_weights: "imagenet"
+  in_channels: 1  
+  classes: 1     
+
+# Paths
+paths:
+  # Base directory
+  base_dir: "polygon_estimator/shape_refinment_dataset"
+  
+  # Train Data
+  train_input_masks: "train_images" 
+  train_label_masks: "train_masks"
+  
+  valid_input_masks: "valid_images"   
+  valid_label_masks: "valid_masks"
+
+  test_input_masks: "test_images"   
+  test_label_masks: "test_masks"
+
+  # Save Path
+  checkpoint_save_path: "polygon_estimator/shape_refinment_model.pth"
