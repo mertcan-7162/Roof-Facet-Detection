@@ -10,9 +10,9 @@ hyperparameters:
 
 # Early Stopping & Scheduler Settings
 training_control:
-  early_stopping_patience: 8  # Kaç epoch boyunca iyileşme olmazsa dursun
-  scheduler_patience: 4        # Kaç epoch iyileşme olmazsa LR düşsün
-  scheduler_factor: 0.5        # LR düşürme katsayısı (lr = lr * 0.5)
+  early_stopping_patience: 10  
+  scheduler_patience: 4        
+  scheduler_factor: 0.5        
   min_lr: 1.0e-6
 
 # Model Settings
@@ -24,7 +24,7 @@ model:
 
 # Paths
 paths:
-  base_dir: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/dataset"
+  base_dir: "dataset"
   train_images: "train_images"
   train_edge_masks: "train_edge_masks"
   train_roof_masks: "train_roof_masks"
@@ -37,4 +37,4 @@ paths:
   test_edge_masks: "test_edge_masks"
   test_roof_masks: "test_roof_masks"
 
-  checkpoint_save_path: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/roof_estimator/roof_edge_detection_model.pth"
+  checkpoint_save_path: "roof_estimator/roof_edge_detection_model.pth"

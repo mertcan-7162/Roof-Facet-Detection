@@ -19,24 +19,23 @@ control:
 model:
   encoder_name: "resnet34"
   encoder_weights: "imagenet"
-  in_channels: 1  # Sadece maske girdiği için 1
-  classes: 1      # Sadece maske çıktığı için 1
+  in_channels: 1  
+  classes: 1     
 
 # Paths
 paths:
   # Base directory
-  base_dir: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/polygon_estimator/shape_refinment_dataset"
+  base_dir: "polygon_estimator/shape_refinment_dataset"
   
   # Train Data
-  train_input_masks: "train_images" # Eğitim için bozuk maskeler
-  train_label_masks: "train_masks" # Eğitim için düzgün maskeler
+  train_input_masks: "train_images" 
+  train_label_masks: "train_masks"
   
-  # Validation Data (Eğer ayrı validasyon setin yoksa buraya da aynısını yazabilirsin)
   valid_input_masks: "valid_images"   
   valid_label_masks: "valid_masks"
 
-  test_input_masks: "test_masks"   
+  test_input_masks: "test_images"   
   test_label_masks: "test_masks"
 
   # Save Path
-  checkpoint_save_path: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/polygon_estimator/shape_refinment_model.pth"
+  checkpoint_save_path: "polygon_estimator/shape_refinment_model.pth"

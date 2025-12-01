@@ -17,7 +17,7 @@ from utils import EarlyStopping, generate_validation_report, validate
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-def load_config(config_path="/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/roof_estimator/config.yaml"):
+def load_config(config_path="roof_estimator/config.yaml"):
     with open(config_path, 'r') as file:
         return yaml.safe_load(file)
 
@@ -96,7 +96,7 @@ def train_one_epoch(loader, model, optimizer, device):
 
 def main():
 
-    cfg = load_config("/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/roof_estimator/config.yaml")
+    cfg = load_config("roof_estimator/config.yaml")
     
     if cfg['hyperparameters']['device'] == "auto":
         if torch.cuda.is_available(): device = "cuda"
@@ -177,7 +177,7 @@ def main():
         model, 
         device, 
         num_samples=5, 
-        save_path="/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/roof_estimator/final_validation_results.png"
+        save_path="roof_estimator/final_validation_results.png"
     )
     
 if __name__ == "__main__":

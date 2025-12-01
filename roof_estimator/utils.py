@@ -107,7 +107,7 @@ def validate(loader, model, device):
         f"Edge IoU: {avg_iou_edge:.4f}, Area IoU: {avg_iou_area:.4f}"
     )
 
-    # Combined score (örneğin early stopping için)
+    # Combined score 
     combined = (
         avg_dice_edge + avg_dice_area +
         avg_iou_edge + avg_iou_area
@@ -124,23 +124,20 @@ def generate_validation_report(loader, model, device, num_samples=5, save_path="
     
     model.eval()
     
-    # 1. METRİK DEĞİŞKENLERİ
     total_edge_iou = 0
     total_roof_iou = 0
     total_edge_dice = 0
     total_roof_dice = 0
     num_batches = len(loader)
     
-    saved_samples = [] # Görselleştirilecek örnekleri burada tutacağız
+    saved_samples = [] 
     
     with torch.no_grad():
         for idx, (images, masks) in enumerate(tqdm(loader, desc="Calculating Metrics")):
             images = images.to(device)
-            # Dataset'ten gelen masks listesi: [edge_mask, roof_mask]
             edge_target = masks[0].to(device)
             roof_target = masks[1].to(device)
 
-            # Model Tahmini
             logits = model(images)
             preds = torch.sigmoid(logits)
             preds = (preds > 0.5).float()
@@ -170,7 +167,6 @@ def generate_validation_report(loader, model, device, num_samples=5, save_path="
             total_roof_dice += r_dice
             
             # --- Sample Collection for Visualization ---
-            # Sadece ilk batch'lerden yeteri kadar örnek al
             if len(saved_samples) < num_samples:
                 batch_size = images.shape[0]
                 for i in range(batch_size):
@@ -178,7 +174,6 @@ def generate_validation_report(loader, model, device, num_samples=5, save_path="
                         break
                     
                     # Tensor -> Numpy Conversion (Denormalization for visualization)
-                    # ImageNet Mean/Std tersine çevir
                     img_cpu = images[i].cpu().permute(1, 2, 0).numpy()
                     mean = np.array([0.485, 0.456, 0.406])
                     std = np.array([0.229, 0.224, 0.225])
@@ -200,13 +195,11 @@ def generate_validation_report(loader, model, device, num_samples=5, save_path="
                         'pred_roof': pred_roof
                     })
 
-    # 2. METRİK ORTALAMALARI
     avg_edge_iou = total_edge_iou / num_batches
     avg_edge_dice = total_edge_dice / num_batches
     avg_roof_iou = total_roof_iou / num_batches
     avg_roof_dice = total_roof_dice / num_batches
 
-    # 3. TABLO YAZDIRMA
     print("\n" + "-"*55)
     print(f"{'Metric Table':^55}")
     print("-" * 55)
@@ -218,13 +211,11 @@ def generate_validation_report(loader, model, device, num_samples=5, save_path="
     print(f"Combined Dice Score: {(avg_edge_dice + avg_roof_dice)/2:.4f}")
     print("-" * 55 + "\n")
 
-    # 4. GÖRSELLEŞTİRME VE KAYDETME
+
     print(f"Creating visualization grid with {len(saved_samples)} samples...")
     
-    # 5 Sütunlu Grid: Input | GT Roof | Pred Roof | GT Edge | Pred Edge
     fig, axs = plt.subplots(nrows=len(saved_samples), ncols=5, figsize=(20, 4 * len(saved_samples)))
     
-    # Tek örnek varsa axis array yapısını korumak için
     if len(saved_samples) == 1:
         axs = axs[np.newaxis, :]
 
@@ -258,4 +249,4 @@ def generate_validation_report(loader, model, device, num_samples=5, save_path="
     plt.savefig(save_path, dpi=150)
     plt.close()
     
-    print(f"✅ Report saved successfully to: {save_path}")
+    print(f"Report saved successfully to: {save_path}")

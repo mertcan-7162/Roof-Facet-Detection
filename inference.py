@@ -12,7 +12,7 @@ import ssl
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-def load_config(config_path="/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/config.yaml"):
+def load_config(config_path="config.yaml"):
     with open(config_path, 'r') as file:
         return yaml.safe_load(file)
 
@@ -45,11 +45,7 @@ def get_preprocessing(height, width):
     ])
 
 def calculate_metrics(pred_mask, gt_mask):
-    """
-    Hesaplar: IoU ve Dice Skoru.
-    Girdi: Binary numpy array (0-255 veya 0-1)
-    """
-    # 0-1 aralığına ve boolean'a çevir
+
     pred = (pred_mask > 127).astype(np.float32)
     gt = (gt_mask > 127).astype(np.float32)
     
@@ -76,11 +72,7 @@ def add_title(img, text):
     return canvas
 
 def create_metrics_summary(metrics, output_path):
-    """
-    Ortalama metrikleri içeren bir özet görseli oluşturur ve kaydeder.
-    metrics: {'roof_iou': [], 'roof_dice': [], 'edge_iou': [], 'edge_dice': [], 'raw_edge_iou': [], 'raw_edge_dice': []}
-    """
-    # Ortalama Hesapla
+
     avg_roof_iou = np.mean(metrics['roof_iou']) if metrics['roof_iou'] else 0
     avg_roof_dice = np.mean(metrics['roof_dice']) if metrics['roof_dice'] else 0
     
@@ -90,36 +82,29 @@ def create_metrics_summary(metrics, output_path):
     avg_edge_iou = np.mean(metrics['edge_iou']) if metrics['edge_iou'] else 0
     avg_edge_dice = np.mean(metrics['edge_dice']) if metrics['edge_dice'] else 0
     
-    # Görsel oluştur (Beyaz arkaplan) - Yüksekliği artırdık
     height, width = 550, 600
     summary_img = np.ones((height, width, 3), dtype=np.uint8) * 255
     
-    # Yazı Ayarları
     font = cv2.FONT_HERSHEY_SIMPLEX
-    color = (50, 50, 50) # Koyu Gri
+    color = (50, 50, 50) 
     
-    # Başlık
     cv2.putText(summary_img, "Inference Metrics Summary", (50, 50), font, 1, (0, 0, 150), 2)
     cv2.line(summary_img, (50, 65), (550, 65), (0, 0, 0), 2)
     
-    # Roof Değerleri
     cv2.putText(summary_img, f"Roof Segmentation:", (50, 120), font, 0.8, (0, 0, 0), 2)
     cv2.putText(summary_img, f"  IoU: {avg_roof_iou:.4f}", (50, 160), font, 0.7, color, 2)
     cv2.putText(summary_img, f"  Dice: {avg_roof_dice:.4f}", (50, 200), font, 0.7, color, 2)
     
-    # Raw Edge Değerleri (Model 1)
     cv2.putText(summary_img, f"Raw Edge (Model 1):", (50, 260), font, 0.8, (0, 0, 0), 2)
     cv2.putText(summary_img, f"  IoU: {avg_raw_edge_iou:.4f}", (50, 300), font, 0.7, color, 2)
     cv2.putText(summary_img, f"  Dice: {avg_raw_edge_dice:.4f}", (50, 340), font, 0.7, color, 2)
 
-    # Refined Edge Değerleri (Model 2)
     cv2.putText(summary_img, f"Refined Edge (Model 2):", (50, 400), font, 0.8, (0, 0, 0), 2)
     cv2.putText(summary_img, f"  IoU: {avg_edge_iou:.4f}", (50, 440), font, 0.7, color, 2)
     cv2.putText(summary_img, f"  Dice: {avg_edge_dice:.4f}", (50, 480), font, 0.7, color, 2)
     
-    # Kaydet
     cv2.imwrite(output_path, summary_img)
-    print(f"\n📊 Metrics summary saved to: {output_path}")
+    print(f"\n Metrics summary saved to: {output_path}")
     print(f"   Roof -> IoU: {avg_roof_iou:.4f}, Dice: {avg_roof_dice:.4f}")
     print(f"   Raw Edge -> IoU: {avg_raw_edge_iou:.4f}, Dice: {avg_raw_edge_dice:.4f}")
     print(f"   Refined Edge -> IoU: {avg_edge_iou:.4f}, Dice: {avg_edge_dice:.4f}")

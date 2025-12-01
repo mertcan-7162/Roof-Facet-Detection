@@ -1,9 +1,7 @@
 import segmentation_models_pytorch as smp
 
-def get_shape_model(config):
-    """
-    Config dosyasından parametreleri okuyup 1 kanallı U-Net++ oluşturur.
-    """
+def get_model(config):
+
     params = config['model']
     
     model = smp.UnetPlusPlus(
@@ -11,7 +9,7 @@ def get_shape_model(config):
         encoder_weights=params['encoder_weights'], 
         in_channels=params['in_channels'],   # 1
         classes=params['classes'],           # 1
-        activation=None # Loss fonksiyonunda 'from_logits=True' kullanacağız
+        activation=None 
     )
     
     return model

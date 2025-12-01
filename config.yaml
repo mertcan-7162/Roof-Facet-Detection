@@ -8,7 +8,7 @@ model1:
   encoder_weights: "imagenet"
   in_channels: 3
   classes: 2 
-  path: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/roof_estimator/roof_edge_detection_model.pth"
+  path: "roof_estimator/roof_edge_detection_model.pth"
 
 # Model Settings
 model2:
@@ -16,12 +16,12 @@ model2:
   encoder_weights: "imagenet"
   in_channels: 1
   classes: 1 
-  path: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/polygon_estimator/shape_refinment_model.pth"
+  path: "polygon_estimator/shape_refinment_model.pth"
 
 # Paths
 paths:
-  base_dir: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/dataset"
-  output_dir: "/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code"
+  base_dir: "dataset"
+  output_dir: "."
   train_images: "train_images"
   train_edge_masks: "train_edge_masks"
   train_roof_masks: "train_roof_masks"

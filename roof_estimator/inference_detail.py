@@ -19,10 +19,7 @@ def load_config(config_path="config.yaml"):
         return yaml.safe_load(file)
 
 def get_inference_transforms(height, width):
-    """
-    Eğitimdeki transformların aynısı (Augmentation hariç).
-    Sadece Resize/Pad ve Normalize.
-    """
+
     return A.Compose([
         A.PadIfNeeded(
             min_height=height, 
@@ -40,7 +37,6 @@ def get_inference_transforms(height, width):
     ])
 
 def create_dirs(base_output_dir):
-    """Çıktı klasör yapısını oluşturur."""
     sub_dirs = {
         "edges_raw": os.path.join(base_output_dir, "model_out", "pred_edges"),
         "roofs_raw": os.path.join(base_output_dir, "model_out", "pred_roofs"),
@@ -56,16 +52,13 @@ def create_dirs(base_output_dir):
     return sub_dirs
 
 def create_overlay(image, mask, color=(0, 255, 0)):
-    """Maskeyi resmin üzerine verilen renkte çizer."""
     mask_bool = mask > 127
     overlay = image.copy()
     overlay[mask_bool] = color
     return overlay
 
 def create_grid_image(original, my_pred, gt, title_pred="Prediction", title_gt="Ground Truth"):
-    """
-    3'lü Grid oluşturur: [Original] [GT] [Prediction]
-    """
+
     h, w, _ = original.shape
     
     def to_3ch(gray_mask):
@@ -90,10 +83,8 @@ def create_grid_image(original, my_pred, gt, title_pred="Prediction", title_gt="
     return np.hstack((original, gt_bgr, my_pred_bgr))
 
 def main():
-    # 1. CONFIGURATION
-    cfg = load_config("/Users/mert/Documents/PROJECTS/SOLARVIS/train_trials/final_code/roof_estimator/config.yaml")
+    cfg = load_config("roof_estimator/config.yaml")
     
-    # Cihaz Seçimi
     if cfg['hyperparameters']['device'] == "auto":
         if torch.cuda.is_available(): device = "cuda"
         elif torch.backends.mps.is_available(): device = "mps"
@@ -103,48 +94,39 @@ def main():
     
     print(f"--- Inference Started on {device} ---")
 
-    # Yollar (Config'den okunuyor)
     base_dir = cfg['paths']['base_dir']
     test_img_dir = os.path.join(base_dir, cfg['paths']['test_images'])
     test_edge_dir = os.path.join(base_dir, cfg['paths']['test_edge_masks'])
     test_roof_dir = os.path.join(base_dir, cfg['paths']['test_roof_masks'])
     model_path = cfg['paths']['checkpoint_save_path']
     
-    # Çıktı Klasörü (Base dir içinde 'inference_results' oluşturur)
-    output_base_dir = os.path.join(base_dir, "..", "inference_results") 
-    # Not: base_dir/.. ile data klasörünün bir üstüne çıkıp oraya kaydediyoruz, istersen değiştirebilirsin.
-    
+    output_base_dir = os.path.join(base_dir, "..", "roof_estimator/detail_roof_detect_inference_results") 
+
     out_dirs = create_dirs(output_base_dir)
     print(f"Results will be saved to: {output_base_dir}")
 
-    # 2. MODEL YÜKLEME
     print("Loading Model...")
     model = get_model(cfg).to(device)
     
     try:
-        # Checkpoint yükle
         checkpoint = torch.load(model_path, map_location=device)
-        # Eğer 'state_dict' anahtarı varsa onu al, yoksa direkt checkpointi al
         state_dict = checkpoint['state_dict'] if 'state_dict' in checkpoint else checkpoint
         model.load_state_dict(state_dict)
-        print("✅ Model weights loaded successfully.")
+        print("Model weights loaded successfully.")
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
+        print(f"Error loading model: {e}")
         return
 
     model.eval()
 
-    # 3. VERİ HAZIRLIĞI
     h, w = cfg['hyperparameters']['image_height'], cfg['hyperparameters']['image_width']
     transform = get_inference_transforms(h, w)
     
     valid_exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif"}
     image_list = sorted([f for f in os.listdir(test_img_dir) if os.path.splitext(f)[1].lower() in valid_exts])
 
-    # 4. INFERENCE LOOP
     for img_name in tqdm(image_list, desc="Processing Images"):
         try:
-            # --- Dosya Okuma ---
             img_path = os.path.join(test_img_dir, img_name)
             original_img = cv2.imread(img_path)
             if original_img is None: continue
@@ -162,7 +144,6 @@ def main():
             if gt_roof is None: gt_roof = np.zeros((orig_h, orig_w), dtype=np.uint8)
 
             # --- Pre-processing ---
-            # Albumentations sadece resmi pad/normalize eder
             augmented = transform(image=img_rgb) 
             tensor_img = augmented["image"].unsqueeze(0).to(device) # (1, 3, H, W)
 
@@ -171,14 +152,12 @@ def main():
                 logits = model(tensor_img)
                 probs = torch.sigmoid(logits)
                 
-                # train.py'deki yapıya göre:
-                # Channel 0 -> Edge (İskelet)
-                # Channel 1 -> Roof (Alan)
+                # Channel 0 -> Edge 
+                # Channel 1 -> Roof 
                 edge_pred_tensor = probs[:, 0, :, :]
                 roof_pred_tensor = probs[:, 1, :, :]
 
             # --- Post-processing ---
-            # Numpy'a çevir
             edge_pred_np = edge_pred_tensor.squeeze().cpu().numpy()
             roof_pred_np = roof_pred_tensor.squeeze().cpu().numpy()
 
@@ -186,18 +165,15 @@ def main():
             edge_mask = (edge_pred_np > 0.5).astype(np.uint8) * 255
             roof_mask = (roof_pred_np > 0.5).astype(np.uint8) * 255
 
-            # Orijinal boyuta geri döndür (Resize)
-            # Çünkü model girdisi Pad edilmiş olabilir (640x640), orijinal (örn: 1024x768) farklı olabilir.
             edge_mask = cv2.resize(edge_mask, (orig_w, orig_h), interpolation=cv2.INTER_NEAREST)
             roof_mask = cv2.resize(roof_mask, (orig_w, orig_h), interpolation=cv2.INTER_NEAREST)
 
-            # --- KAYIT VE GÖRSELLEŞTİRME ---
 
-            # A. RAW OUTPUTS
+            # RAW OUTPUTS
             cv2.imwrite(os.path.join(out_dirs["edges_raw"], mask_name), edge_mask)
             cv2.imwrite(os.path.join(out_dirs["roofs_raw"], mask_name), roof_mask)
 
-            # B. GRIDS (Comparison)
+            # GRIDS (Comparison)
             # Edge Grid
             edge_grid = create_grid_image(original_img, edge_mask, gt_edge, title_pred="Pred Edge", title_gt="GT Edge")
             cv2.imwrite(os.path.join(out_dirs["edge_grid"], mask_name), edge_grid)
@@ -206,20 +182,20 @@ def main():
             roof_grid = create_grid_image(original_img, roof_mask, gt_roof, title_pred="Pred Roof", title_gt="GT Roof")
             cv2.imwrite(os.path.join(out_dirs["roof_grid"], mask_name), roof_grid)
 
-            # C. OVERLAYS (Renkli çizim)
-            # Edge Overlay (Yeşil)
+            # OVERLAYS 
+            # Edge Overlay
             edge_ov = create_overlay(original_img, edge_mask, color=(0, 255, 0))
             cv2.imwrite(os.path.join(out_dirs["edge_overlay"], mask_name), edge_ov)
             
-            # Roof Overlay (Kırmızımsı veya Yeşil)
-            roof_ov = create_overlay(original_img, roof_mask, color=(0, 0, 255)) # Kırmızı
+            # Roof Overlay 
+            roof_ov = create_overlay(original_img, roof_mask, color=(0, 0, 255)) 
             cv2.imwrite(os.path.join(out_dirs["roof_overlay"], mask_name), roof_ov)
 
         except Exception as e:
             print(f"Skipping {img_name}: {e}")
             continue
 
-    print("\n✅ Inference completed successfully!")
+    print("\n Inference completed successfully!")
 
 if __name__ == "__main__":
     main()
